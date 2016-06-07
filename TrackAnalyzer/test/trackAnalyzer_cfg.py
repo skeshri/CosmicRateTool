@@ -21,7 +21,7 @@ import FWCore.Utilities.FileUtils as FileUtils
 readFiles = cms.untracked.vstring()
 
 
-readFiles = cms.untracked.vstring( FileUtils.loadListFromFile (os.environ['CMSSW_BASE']+'/src/CosmicTrackTool/TrackAnalyzer/test/'+'list.txt') )
+readFiles = cms.untracked.vstring( FileUtils.loadListFromFile (os.environ['CMSSW_BASE']+'/src/CosmicRateTool/TrackAnalyzer/test/'+'list.txt') )
 process.source = cms.Source("PoolSource",
 			   fileNames = readFiles,
 			   eventsToProcess = cms.untracked.VEventRange("271861:MIN-271992:MAX")
