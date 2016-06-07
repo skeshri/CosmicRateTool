@@ -7,10 +7,10 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 process.load('Configuration.StandardSequences.MagneticField_cff') # B-field map
 process.load('Configuration.Geometry.GeometryRecoDB_cff') # Ideal geometry and interface
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff") # Global tag
-process.GlobalTag.connect   = "frontier://FrontierProd/CMS_CONDITIONS"
+#process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff") # Global tag
+#process.GlobalTag.connect   = "frontier://FrontierProd/CMS_CONDITIONS"
  
-process.GlobalTag.globaltag ='80X_dataRun2_Prompt_v2' 
+#process.GlobalTag.globaltag ='80X_dataRun2_Prompt_v2' 
 process.options = cms.untracked.PSet(
      SkipEvent= cms.untracked.vstring("ProductNotFound"), # make this exception fatal
   )
