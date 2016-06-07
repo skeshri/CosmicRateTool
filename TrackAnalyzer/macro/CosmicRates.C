@@ -6,7 +6,7 @@
 
 void CosmicRates()
 {
-	TFile *file = new TFile("Cosmic_rate_tuple.root");
+	TFile *file = new TFile("../test/Cosmic_rate_tuple.root");
 	TTree *tree;
 	tree = (TTree*)file->Get("Run");
 	
