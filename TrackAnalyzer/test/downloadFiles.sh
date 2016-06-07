@@ -7,7 +7,7 @@ if [ "$#" -lt '2' ]
 then
   printf "\nDataset name is not given."
   printf "Usage:\n"
-  printf "./downloadFiles.sh [DataSet] [FileName(optional)]\n"
+  printf "./downloadFiles.sh [DataSet] [FileName(optional)]\n\n"
   exit 1;
 fi
 
