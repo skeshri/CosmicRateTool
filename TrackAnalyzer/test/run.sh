@@ -14,5 +14,3 @@ bsub -q $QUEUE < job.sh
 
 fi
 
-#bsub -q $1 < job.sh 
-
