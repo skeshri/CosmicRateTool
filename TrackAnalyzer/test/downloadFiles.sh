@@ -14,3 +14,9 @@ fi
 das_client.py --limit=100000 --query="file dataset=$DATASET" >& $FILELIST
 
 sed -e '1,3d' $FILELIST > temp && mv temp $FILELIST
+
+if [ `find -iname temp` ]
+then
+rm temp                                                                                                                                      
+fi
+
