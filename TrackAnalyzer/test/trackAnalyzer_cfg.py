@@ -29,7 +29,7 @@ process.source = cms.Source("PoolSource",
 
 process.demo = cms.EDAnalyzer("TrackAnalyzer",
 #				tracks = cms.InputTag("ctfWithMaterialTracksP5"),                # Track collection for prompt RECO Dataset
-				tracks = cms.InputTag("ALCARECOTkAlCosmicsCTF0T"),		 # Track collection for prompt ALCARECO Dataset
+				tracks = cms.InputTag("ALCARECOTkAlCosmicsCTF0T"),		 # Track collection for stream and prompt ALCARECO Dataset
 				muons = cms.InputTag("muons1Leg"),		 # for muon Trigger information  
 				fileName = cms.untracked.string("Cosmic_rate_tuple.root")
 )
