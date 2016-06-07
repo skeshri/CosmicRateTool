@@ -1,4 +1,4 @@
 #!/bin/bash
 
-root -l -b -q CosmicRates.C
-root -l -b -q Kinematics.C
+root -l -b -q ../macro/CosmicRates.C
+root -l -b -q ../macro/Kinematics.C
