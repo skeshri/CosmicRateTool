@@ -129,7 +129,7 @@ void CosmicRates()
 
 
 //       cout<<"runnum  :  "<<runnum[j]<<"  tracks tec  : "<< tracks_tec[j]<<endl;
-       cout<<"runnum  :  "<<runnum[j]<<"  tracks  : "<< tracks[j]<<"   track rates :  "<<track_rate[j]<<endl;
+       cout<<"runnum  :  "<<runNumber[j]<<"  tracks  : "<< tracks[j]<<"   track rates :  "<<track_rate[j]<<endl;
        track_rate_err[j] = sqrt(float(number_of_tracks))/double(run_time);
        event_rate_err[j] = sqrt(float(number_of_events))/double(run_time);
        track_rate_PIX_err[j] = sqrt(float(number_of_tracks_PIX))/double(run_time);
