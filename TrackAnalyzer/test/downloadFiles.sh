@@ -3,7 +3,7 @@
 DATASET=$1
 FILELIST=$2
 
-if [ "$#" -lt '2' ]
+if [ !"$1" ]
 then
   printf "\nDataset name is not given."
   printf "Usage:\n"
