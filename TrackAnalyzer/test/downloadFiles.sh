@@ -3,16 +3,16 @@
 DATASET=$1
 FILELIST=$2
 
-if [ !"$1" ]
+if [ "$#" -lt '1' ]
 then
-  printf "\nDataset name is not given."
+  printf "\nDataset name is not given.\n"
   printf "Usage:\n"
   printf "./downloadFiles.sh [DataSet] [FileName(optional)]\n\n"
   exit 1;
 fi
-
-if [ !"$2" ]
-then 
+ 
+if [ "$#" != '2' ]
+then
 FILELIST="list.txt"
 fi
 
