@@ -10,7 +10,7 @@ void CosmicRates()
 	TTree *tree;
 	tree = (TTree*)file->Get("Run");
 	
-   ULong64_t  run_time;
+   double  run_time;
    unsigned int runnum;
    int     number_of_events;
    int     number_of_tracks;
@@ -104,19 +104,19 @@ void CosmicRates()
    {
      tree->GetEntry(jentry);
      if (run_time == 0 ) continue;
- //     cout<< number_of_tracks/double(run_time)<<endl;
-      event_rate[j] = number_of_events/double(run_time);
+ //     cout<< number_of_tracks/run_time<<endl;
+      event_rate[j] = number_of_events/run_time;
       runNumber [j] = runnum;
-      track_rate[j] = number_of_tracks/double(run_time);
-      track_rate_PIX[j] = number_of_tracks_PIX/double(run_time);
-      track_rate_FPIX[j] = number_of_tracks_FPIX/double(run_time);
-      track_rate_BPIX[j] = number_of_tracks_BPIX/double(run_time);
-      track_rate_TOB[j] = number_of_tracks_TOB/double(run_time);
-      track_rate_TIB[j] = number_of_tracks_TIB/double(run_time);
-      track_rate_TID[j] = number_of_tracks_TID/double(run_time);
-      track_rate_TEC[j] = number_of_tracks_TEC/double(run_time);
-      track_rate_TECP[j] = number_of_tracks_TECP/double(run_time);
-      track_rate_TECM[j] = number_of_tracks_TECM/double(run_time);
+      track_rate[j] = number_of_tracks/run_time;
+      track_rate_PIX[j] = number_of_tracks_PIX/run_time;
+      track_rate_FPIX[j] = number_of_tracks_FPIX/run_time;
+      track_rate_BPIX[j] = number_of_tracks_BPIX/run_time;
+      track_rate_TOB[j] = number_of_tracks_TOB/run_time;
+      track_rate_TIB[j] = number_of_tracks_TIB/run_time;
+      track_rate_TID[j] = number_of_tracks_TID/run_time;
+      track_rate_TEC[j] = number_of_tracks_TEC/run_time;
+      track_rate_TECP[j] = number_of_tracks_TECP/run_time;
+      track_rate_TECM[j] = number_of_tracks_TECM/run_time;
       tracks[j]  	   	= number_of_tracks;
       tracks_bpix[j]  	   	= number_of_tracks_BPIX;
       tracks_fpix[j]  	   	= number_of_tracks_FPIX;
@@ -130,18 +130,18 @@ void CosmicRates()
 
 //       cout<<"runnum  :  "<<runnum[j]<<"  tracks tec  : "<< tracks_tec[j]<<endl;
        cout<<"runnum  :  "<<runNumber[j]<<"  tracks  : "<< tracks[j]<<"   track rates :  "<<track_rate[j]<<endl;
-       track_rate_err[j] = sqrt(float(number_of_tracks))/double(run_time);
-       event_rate_err[j] = sqrt(float(number_of_events))/double(run_time);
-       track_rate_PIX_err[j] = sqrt(float(number_of_tracks_PIX))/double(run_time);
+       track_rate_err[j] = sqrt(float(number_of_tracks))/run_time;
+       event_rate_err[j] = sqrt(float(number_of_events))/run_time;
+       track_rate_PIX_err[j] = sqrt(float(number_of_tracks_PIX))/run_time;
 
-       track_rate_FPIX_err[j] = sqrt(float(number_of_tracks_FPIX))/double(run_time);
-       track_rate_BPIX_err[j] = sqrt(float(number_of_tracks_BPIX))/double(run_time);
-       track_rate_TOB_err[j] = sqrt(float(number_of_tracks_TOB))/double(run_time);
-       track_rate_TIB_err[j] = sqrt(float(number_of_tracks_TIB))/double(run_time);
-       track_rate_TID_err[j] = sqrt(float(number_of_tracks_TID))/double(run_time);
-       track_rate_TEC_err[j] = sqrt(float(number_of_tracks_TEC))/double(run_time);
-       track_rate_TECP_err[j] = sqrt(float(number_of_tracks_TECP))/double(run_time);
-       track_rate_TECM_err[j] = sqrt(float(number_of_tracks_TECM))/double(run_time);
+       track_rate_FPIX_err[j] = sqrt(float(number_of_tracks_FPIX))/run_time;
+       track_rate_BPIX_err[j] = sqrt(float(number_of_tracks_BPIX))/run_time;
+       track_rate_TOB_err[j] = sqrt(float(number_of_tracks_TOB))/run_time;
+       track_rate_TIB_err[j] = sqrt(float(number_of_tracks_TIB))/run_time;
+       track_rate_TID_err[j] = sqrt(float(number_of_tracks_TID))/run_time;
+       track_rate_TEC_err[j] = sqrt(float(number_of_tracks_TEC))/run_time;
+       track_rate_TECP_err[j] = sqrt(float(number_of_tracks_TECP))/run_time;
+       track_rate_TECM_err[j] = sqrt(float(number_of_tracks_TECM))/run_time;
 
       runNumber_err[j]  = 0;   
 	if (number_of_tracks_TECM == 0){

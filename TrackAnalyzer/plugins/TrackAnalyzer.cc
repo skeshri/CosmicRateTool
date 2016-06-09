@@ -116,7 +116,7 @@ class TrackAnalyzer : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
       edm::EDGetTokenT<reco::TrackCollection> trackTags_;
       edm::EDGetTokenT<reco::MuonCollection> muonTags_;
       edm::RunNumber_t lastrunnum;
-      edm::TimeValue_t lastruntime;
+      double lastruntime;
 
       std::string fileName_;
       TFile* file_;
@@ -155,7 +155,7 @@ class TrackAnalyzer : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
       int			number_of_tracks_TIDM;
       int			number_of_events;
       edm::RunNumber_t		runnum;
-      edm::TimeValue_t		run_time ;
+      double                    run_time ;
       std::vector<double>	pt;
       std::vector<double>	charge;
       std::vector<double>	chi2;
@@ -531,7 +531,7 @@ TrackAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 //   std::cout<<"lastruntime : "<<lastruntime<<"       lastrunnum : "<<lastrunnum<<std::endl;
 //   std::cout<<" ################   : "<<ntrk_runnum<<std::endl;
    number_of_tracks	=ntrk_runnum;
-   run_time		= double(lastruntime);
+   run_time		= lastruntime;
    runnum		= lastrunnum;
    number_of_tracks_PIX	= track_PIXEL ; 
    number_of_tracks_FPIX= track_FPIX ; 
