@@ -91,17 +91,6 @@
 //
 // class declaration
 //
-
-// http://cms-service-sdtweb.web.cern.ch/cms-service-sdtweb/doxygen/new1/CMSSW_3_6_0/doc/html/d7/d7d/DQMEventInfo_8cc-source.html
- static inline double stampToReal(edm::Timestamp time)
- {
-         return (time.value() >> 32) + 1e-6 * (time.value() & 0xffffffff);
-         }
-
-
-
-
-
 class TrackAnalyzer : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
    public:
       explicit TrackAnalyzer(const edm::ParameterSet&);
@@ -118,6 +107,9 @@ class TrackAnalyzer : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
       virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
       virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
 
+      static double stampToReal(edm::Timestamp time) {
+	return time.unixTime() + time.microsecondOffset()*1e-6;
+      }
       void ClearInEventLoop();
       void ClearInEndRun();
       // ----------member data ---------------------------
