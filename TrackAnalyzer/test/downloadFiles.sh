@@ -16,12 +16,12 @@ then
 FILELIST="list.txt"
 fi
 
-das_client.py --limit=100000 --query="file dataset=$DATASET" >& $FILELIST
+das_client.py --limit=0 --query="file dataset=$DATASET | grep file.name, file.nevents > 0" >& $FILELIST
 
 sed -e '1,3d' $FILELIST > temp && mv temp $FILELIST
 
 if [ `find -iname temp` ]
 then
-rm temp                                                                                                                                      
+rm temp
 fi
 
