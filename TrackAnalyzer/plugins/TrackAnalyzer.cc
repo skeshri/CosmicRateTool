@@ -24,7 +24,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -102,7 +102,7 @@
 
 
 
-class TrackAnalyzer : public edm::EDAnalyzer {
+class TrackAnalyzer : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
    public:
       explicit TrackAnalyzer(const edm::ParameterSet&);
       ~TrackAnalyzer();
@@ -117,8 +117,6 @@ class TrackAnalyzer : public edm::EDAnalyzer {
 
       virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
       virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
-      //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-      //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
       void ClearInEventLoop();
       void ClearInEndRun();
