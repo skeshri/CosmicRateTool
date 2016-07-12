@@ -1,14 +1,17 @@
 // -*- C++ -*-
 //
-// Package:    CosmicTrackTool/TrackAnalyzer
-// Class:      TrackAnalyzer
+// Package:    CosmicTrackTool/CosmicRateAnalyzer
+// Class:      CosmicRateAnalyzer
 // 
-/**\class TrackAnalyzer TrackAnalyzer.cc CosmicTrackTool/TrackAnalyzer/plugins/TrackAnalyzer.cc
+/**\class CosmicRateAnalyzer CosmicRateAnalyzer.cc CosmicTrackTool/CosmicRateAnalyzer/plugins/CosmicRateAnalyzer.cc
 
  Description: [one line class summary]
 
- Implementation:
-     [Notes on implementation]
+ Description :
+  This Analyzer creates tuple, having necessary infromation for cosmic track and event rate calculations.
+Tuple created by this analyzer also have some kinematical information. This tuple is input of some offline
+macros that make rate plots and kinematical plots.
+
 */
 // Originally created:  Justyna Magdalena Tomaszewska,,,
 // Revisited by: Ashutosh Bhardwaj and Kirti Ranjan
@@ -24,43 +27,32 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
-
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
-#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
-#include "Geometry/CommonDetUnit/interface/GeomDet.h"
-#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "DPGAnalysis/SiStripTools/interface/APVCyclePhaseCollection.h"
 #include "CondFormats/SiStripObjects/interface/SiStripLatency.h"                
 #include "CondFormats/DataRecord/interface/SiStripCondDataRecords.h"
-
 
 #include "DataFormats/Provenance/interface/Timestamp.h"
 
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/SiStripDetId/interface/SiStripDetId.h"
 #include "DataFormats/SiPixelDetId/interface/PixelSubdetector.h"
-#include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
-#include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
 
 #include "DataFormats/SiStripDetId/interface/TECDetId.h"
 #include "DataFormats/SiStripDetId/interface/TIBDetId.h"
@@ -70,16 +62,12 @@
 #include "DataFormats/SiPixelDetId/interface/PXFDetId.h"
 #include "DataFormats/SiPixelDetId/interface/PixelBarrelName.h"
 #include "DataFormats/SiPixelDetId/interface/PixelEndcapName.h"
-
-
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
+#include "DataFormats/Common/interface/DetSetVectorNew.h"
+#include "DataFormats/Common/interface/DetSetVector.h"
 
-
-
-#include <TH1.h>
-#include <TH2.h>
-#include <TFile.h>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -91,21 +79,10 @@
 //
 // class declaration
 //
-
-// http://cms-service-sdtweb.web.cern.ch/cms-service-sdtweb/doxygen/new1/CMSSW_3_6_0/doc/html/d7/d7d/DQMEventInfo_8cc-source.html
- static inline double stampToReal(edm::Timestamp time)
- {
-         return (time.value() >> 32) + 1e-6 * (time.value() & 0xffffffff);
-         }
-
-
-
-
-
-class TrackAnalyzer : public edm::EDAnalyzer {
+class CosmicRateAnalyzer : public edm::one::EDAnalyzer<edm::one::WatchRuns,edm::one::SharedResources> {
    public:
-      explicit TrackAnalyzer(const edm::ParameterSet&);
-      ~TrackAnalyzer();
+      explicit CosmicRateAnalyzer(const edm::ParameterSet&);
+      ~CosmicRateAnalyzer();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -117,21 +94,24 @@ class TrackAnalyzer : public edm::EDAnalyzer {
 
       virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
       virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
-      //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-      //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
+      static double stampToReal(edm::Timestamp time) {
+	return time.unixTime() + time.microsecondOffset()*1e-6;
+      }
       void ClearInEventLoop();
       void ClearInEndRun();
       // ----------member data ---------------------------
       edm::EDGetTokenT<reco::TrackCollection> trackTags_;
+      edm::EDGetTokenT<edmNew::DetSetVector<SiStripCluster> > clustercollectionToken_;
       edm::EDGetTokenT<reco::MuonCollection> muonTags_;
       edm::RunNumber_t lastrunnum;
-      edm::TimeValue_t lastruntime;
-
-      std::string fileName_;
-      TFile* file_;
+      double lastruntime;
+      edm::Service<TFileService> fs;
+   
+      unsigned int DetectorID; 
       TTree* treeEvent;
       TTree* treeRun;
+      TTree* treeCluster;
 
       int			events;
       int       		track_BPIX  ; 	
@@ -149,7 +129,6 @@ class TrackAnalyzer : public edm::EDAnalyzer {
       std::vector<int>		v_ntrk;
       int 			ntrk;
       int			ntrk_runnum;
-      std::vector<int>		StripId;
    
       int			number_of_tracks;
       int			number_of_tracks_PIX;
@@ -165,7 +144,7 @@ class TrackAnalyzer : public edm::EDAnalyzer {
       int			number_of_tracks_TIDM;
       int			number_of_events;
       edm::RunNumber_t		runnum;
-      edm::TimeValue_t		run_time ;
+      double                    run_time ;
       std::vector<double>	pt;
       std::vector<double>	charge;
       std::vector<double>	chi2;
@@ -192,21 +171,22 @@ class TrackAnalyzer : public edm::EDAnalyzer {
 //
 // constructors and destructor
 //
-TrackAnalyzer::TrackAnalyzer(const edm::ParameterSet& iConfig):
-  trackTags_(consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("tracks"))),
-  muonTags_(consumes<reco::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"))),
-  fileName_(iConfig.getUntrackedParameter<std::string>("fileName"))
-
+CosmicRateAnalyzer::CosmicRateAnalyzer(const edm::ParameterSet& iConfig):
+  trackTags_(consumes<reco::TrackCollection>(iConfig.getParameter<edm::InputTag>("tracksInputTag"))),
+  clustercollectionToken_(consumes<edmNew::DetSetVector<SiStripCluster> >(iConfig.getParameter<edm::InputTag>("tracksInputTag"))),
+  muonTags_(consumes<reco::MuonCollection>(iConfig.getParameter<edm::InputTag>("muonsInputTag")))
 {
    //now do what ever initialization is needed
    //
-    //edm::Service<TFileService> fs;
-    //demohisto = fs->make<TFile>("");
+    usesResource(TFileService::kSharedResource);
+    treeEvent = fs->make<TTree>("Event","");
+    treeRun = fs->make<TTree>("Run","");
+    treeCluster = fs->make<TTree>("Cluster","");
 
 }
 
 
-TrackAnalyzer::~TrackAnalyzer()
+CosmicRateAnalyzer::~CosmicRateAnalyzer()
 {
  
    // do anything here that needs to be done at desctruction time
@@ -218,38 +198,35 @@ TrackAnalyzer::~TrackAnalyzer()
 //
 // member functions
 //
-void TrackAnalyzer::ClearInEventLoop() {
+void CosmicRateAnalyzer::ClearInEventLoop() {
 
-	pt			.clear();
-	charge			.clear(); 
-	chi2			.clear();
-	chi2_ndof		.clear();
-	eta			.clear();
-	theta			.clear();
-	phi			.clear();
-	p			.clear();
-	d0			.clear();
-	dz			.clear();
-	nvh			.clear();
-	DTtime			.clear();
+      pt	.clear();
+      charge	.clear(); 
+      chi2	.clear();
+      chi2_ndof	.clear();
+      eta	.clear();
+      theta	.clear();
+      phi	.clear();
+      p		.clear();
+      d0	.clear();
+      dz	.clear();
+      nvh	.clear();
+      DTtime	.clear();
 
 }
 
 // ------------ method called for each event  ------------
 void
-TrackAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+CosmicRateAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
 
    using reco::TrackCollection;
-  edm::Handle<reco::TrackCollection> tracks;
-  iEvent.getByToken(trackTags_, tracks);
+   edm::Handle<reco::TrackCollection> tracks;
+   iEvent.getByToken(trackTags_, tracks);
+
    edm::ESHandle<MagneticField> magfield;
    iSetup.get<IdealMagneticFieldRecord>().get(magfield);
-   float B_=magfield.product()->inTesla(GlobalPoint(0,0,0)).mag();
-//   std::cout<< " magfield " << B_ << std::endl;
-
-
 
    edm::Timestamp ts_begin = iEvent.getRun().beginTime();
    double t_begin = stampToReal(ts_begin);
@@ -261,215 +238,157 @@ TrackAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    edm::ESHandle<SiStripLatency> apvlat;
    iSetup.get<SiStripLatencyRcd>().get(apvlat);
-//   int mode = -1;
-//   if(apvlat->singleReadOutMode()==1) mode = 47; // peak mode
-//   if(apvlat->singleReadOutMode()==0) mode = 37; // deco mode
-
 
    if (tracks->size()>0) v_ntrk.push_back(tracks->size());
 
    ntrk	= 0;
    for(TrackCollection::const_iterator itTrack1 = tracks->begin(); itTrack1 != tracks->end(); ++itTrack1)
-        {
+   {
+      pt	.push_back(itTrack1->pt());
+      charge	.push_back(itTrack1->charge());
+      chi2	.push_back(itTrack1->chi2());
+      chi2_ndof	.push_back(itTrack1->normalizedChi2());
+      eta	.push_back(itTrack1->eta());
+      theta	.push_back(itTrack1->theta());
+      phi	.push_back(itTrack1->phi());
+      p		.push_back(itTrack1->p());
+      d0	.push_back(itTrack1->d0());
+      dz	.push_back(itTrack1->dz());
+      nvh	.push_back(itTrack1->numberOfValidHits());
 
-//	std::cout<< " ==========================================pt : " <<itTrack1->pt() <<std::endl;
-	   	pt			.push_back(itTrack1->pt());
-	    	charge			.push_back(itTrack1->charge());
-	    	chi2			.push_back(itTrack1->chi2());
-	    	chi2_ndof		.push_back(itTrack1->normalizedChi2());
-	    	eta			.push_back(itTrack1->eta());
-	    	theta			.push_back(itTrack1->theta());
-	    	phi			.push_back(itTrack1->phi());
-	    	p			.push_back(itTrack1->p());
-	    	d0			.push_back(itTrack1->d0());
-	    	dz			.push_back(itTrack1->dz());
-	    	nvh			.push_back(itTrack1->numberOfValidHits());
+      int nhitinBPIX  	= 0;
+      int nhitinFPIX  	= 0;
+      int nhitinPIXEL 	= 0;
+      int nhitinTEC 	= 0;
+      int nhitinTOB 	= 0;
+      int nhitinTIB 	= 0;
+      int nhitinTID 	= 0;
+      int nhitinTECminus= 0;
+      int nhitinTECplus = 0;
+      int nhitinTIDminus= 0;
+      int nhitinTIDplus = 0;
+      int countHit 	= 0;
 
-                int nhitinBPIX  	= 0;
-                int nhitinFPIX  	= 0;
-                int nhitinPIXEL 	= 0;
-                int nhitinTEC 		= 0;
-                int nhitinTOB 		= 0;
-                int nhitinTIB 		= 0;
-                int nhitinTID 		= 0;
-                int nhitinTECminus 	= 0;
-                int nhitinTECplus 	= 0;
-                int nhitinTIDminus 	= 0;
-                int nhitinTIDplus 	= 0;
-		int countHit 		= 0;
-         for(trackingRecHit_iterator iHit1 = itTrack1->recHitsBegin(); iHit1 != itTrack1->recHitsEnd(); ++iHit1)
-                {
+      for(trackingRecHit_iterator iHit1 = itTrack1->recHitsBegin(); iHit1 != itTrack1->recHitsEnd(); ++iHit1)
+      {
 
-                   const DetId detId1((*iHit1)->geographicalId());
-                   const int subdetId1 = detId1.subdetId();
-                   if (!(*iHit1)->isValid()) continue; // only real hits count as in itTrack1->numberOfValidHits()
-
+         const DetId detId1((*iHit1)->geographicalId());
+         const int subdetId1 = detId1.subdetId();
+         if (!(*iHit1)->isValid()) continue; // only real hits count as in itTrack1->numberOfValidHits()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // 			 Hit information in PixelBarrel                          		 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-                     if (PixelSubdetector::PixelBarrel == subdetId1) 
-			   { 
-			       ++nhitinBPIX; ++nhitinPIXEL;
-                               PixelBarrelName pxbId1(detId1);
-                    /*      if(pxbId1.isHalfModule())
-			     {
-                               ++nhitinPXBminus;
-                             }
-                          else
-			     {
-                               ++nhitinPXBplus;
-			     }
-		    */
-                	   }
-
-
-
+         if (PixelSubdetector::PixelBarrel == subdetId1) 
+         { 
+            ++nhitinBPIX; ++nhitinPIXEL;
+            PixelBarrelName pxbId1(detId1);
+         }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //			Hit information in PixelEndcap                                  	//
 //////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-                      else if (PixelSubdetector::PixelEndcap == subdetId1) 
-			   {
-			      ++nhitinFPIX; ++nhitinPIXEL;
-                           }
-
-
-
+          else if (PixelSubdetector::PixelEndcap == subdetId1) 
+          { 
+             ++nhitinFPIX; ++nhitinPIXEL;
+          } 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //			Hit information in TEC							//
 //////////////////////////////////////////////////////////////////////////////////////////////////
-
-                      else if (SiStripDetId::TEC == subdetId1)
-                           {
-                              ++nhitinTEC;
-				StripId.push_back(subdetId1);
-                              TECDetId tecId1(detId1);
-                          if (tecId1.isZMinusSide()) 
-			     {
-                              ++nhitinTECminus;
-                             }
-                          else 
-			     {
-                              ++nhitinTECplus;
-                             }
-
-                           }
-
-
-
+          else if (SiStripDetId::TEC == subdetId1)
+          { 
+             ++nhitinTEC;
+             TECDetId tecId1(detId1);
+             if (tecId1.isZMinusSide()) 
+             {
+                ++nhitinTECminus;
+             }
+             else 
+             {
+                ++nhitinTECplus;
+             }
+          } 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //			Hit information in TOB		   		                        //
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
-                       else if (SiStripDetId::TOB == subdetId1)
-                           {
-                              ++nhitinTOB;
-				StripId.push_back(subdetId1);
-                              TOBDetId tobId1(detId1);
-                           }
-
-
-
+          else if (SiStripDetId::TOB == subdetId1)
+          {
+             ++nhitinTOB;
+             TOBDetId tobId1(detId1);
+          }
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //			Hit information in TIB		                                	//
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
-                        else if (SiStripDetId::TIB == subdetId1)
-                           {
-                              ++nhitinTIB;
-				StripId.push_back(subdetId1);
-                              TIBDetId tibId1(detId1);
-                           }
-
-
-
+          else if (SiStripDetId::TIB == subdetId1)
+          { 
+             ++nhitinTIB;
+             TIBDetId tibId1(detId1);
+          }
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //			Hit information in TID		                                	//
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-                        else if (SiStripDetId::TID == subdetId1)
-                           {
-                              ++nhitinTID;
-				StripId.push_back(subdetId1);
-                              TIDDetId tidId1(detId1);
-                          if (tidId1.isZMinusSide())
-                             {
-                              ++nhitinTIDminus;
-                             }
-
-                          else 
-			     {
-                              ++nhitinTIDplus;
-                             }
-                           }
+          else if (SiStripDetId::TID == subdetId1)
+          { 
+             ++nhitinTID;
+             TIDDetId tidId1(detId1);
+             if (tidId1.isZMinusSide())
+             {
+                ++nhitinTIDminus;
+             }
+             else 
+             {
+                ++nhitinTIDplus;
+             }
+          }
 			
+          countHit++;
+      } // for Loop over Hits
 
-			countHit++;
-                    } // for Loop over Hits
+      if (nhitinBPIX	 > 0 )    	{track_BPIX++	;}     
+      if (nhitinFPIX  	 > 0 )    	{track_FPIX++	;} 
+      if (nhitinPIXEL 	 > 0 )   	{track_PIXEL++	;} 
+      if (nhitinTEC 	 > 0 )    	{track_TEC++	;}
+      if (nhitinTECminus > 0 ) 		{track_TECM++	;} 
+      if (nhitinTECplus	 > 0 )  	{track_TECP++	;}
+      if (nhitinTOB	 > 0 )    	{track_TOB++	;}
+      if (nhitinTIB	 > 0 )    	{track_TIB++	;}
+      if (nhitinTID	 > 0 )    	{track_TID++	;}
+      if (nhitinTIDminus > 0 ) 		{track_TIDM++	;}
+      if (nhitinTIDplus	 > 0 )  	{track_TIDP++	;}
+		
+      ntrk++;
+      ntrk_runnum++;
+   }  // for Loop over TrackCollection
+   events++;		
 
+   Handle<edmNew::DetSetVector<SiStripCluster> > cluster;
+   iEvent.getByToken(clustercollectionToken_,cluster);
 
-		StripId.clear();     		
+   for(edmNew::DetSetVector<SiStripCluster>::const_iterator det = cluster->begin();det!=cluster->end();++det) 
+   {
+      DetectorID = (det->detId());
+      treeCluster->Fill();
+   }
 
-                if (nhitinBPIX		 > 0 )    	{track_BPIX++	;}     
-                if (nhitinFPIX  	 > 0 )    	{track_FPIX++	;} 
-                if (nhitinPIXEL 	 > 0 )   	{track_PIXEL++	;} 
-                if (nhitinTEC 		 > 0 )    	{track_TEC++	;}
-                if (nhitinTECminus 	 > 0 ) 		{track_TECM++	;} 
-                if (nhitinTECplus	 > 0 )  	{track_TECP++	;}
-                if (nhitinTOB		 > 0 )    	{track_TOB++	;}
-                if (nhitinTIB		 > 0 )    	{track_TIB++	;}
-                if (nhitinTID		 > 0 )    	{track_TID++	;}
-                if (nhitinTIDminus	 > 0 ) 		{track_TIDM++	;}
-                if (nhitinTIDplus	 > 0 )  	{track_TIDP++	;}
-
-
-		ntrk++;
-		ntrk_runnum++;
-		}  // for Loop over TrackCollection
-
-		events++;		
-
-
-  edm::Handle<reco::MuonCollection> muH;
-
-  iEvent.getByToken(muonTags_, muH);
-  const reco::MuonCollection& muonsT0 = *(muH.product()); 
-
-
-  float time = -9999.;
-  float time_error = -9999.;
-  float time_ndof = -9999.;
-
-    for (unsigned int i=0; i<muonsT0.size(); i++) {
-
+   edm::Handle<reco::MuonCollection> muH;
+   iEvent.getByToken(muonTags_, muH);
+   const reco::MuonCollection& muonsT0 = *(muH.product()); 
+   float time = -9999.;
+   for (unsigned int i=0; i<muonsT0.size(); i++) 
+   {
       //DT time
       reco::MuonTime mt0 = muonsT0[i].time();
       time = mt0.timeAtIpInOut;
-      time_error = mt0.timeAtIpInOutErr;
-      time_ndof = mt0.nDof;
       DTtime.push_back(time);
-//   std::cout<<time<<std::endl;
-
-  }
-
-treeEvent ->Fill();
-ClearInEventLoop();
+   }
+   treeEvent ->Fill();
+   ClearInEventLoop();
 
 }   //Event Loop
 
-
 // ------------ method called once each job just before starting event loop  ------------
 void 
-TrackAnalyzer::beginJob()
+CosmicRateAnalyzer::beginJob()
 {
-   file_ 		= new TFile(fileName_.c_str(),"RECREATE");
-   treeEvent		= new TTree("Event","");
-   treeRun		= new TTree("Run","");
-
    treeEvent 	->Branch("pt",&pt);
    treeEvent 	->Branch("charge",&charge);
    treeEvent 	->Branch("chi2",&chi2);
@@ -498,21 +417,19 @@ TrackAnalyzer::beginJob()
    treeRun	->Branch("number_of_tracks_TECP",&number_of_tracks_TECP);
    treeRun	->Branch("number_of_tracks_TECM",&number_of_tracks_TECM);
    treeRun	->Branch("number_of_tracks_TOB",&number_of_tracks_TOB);
+   treeCluster	->Branch("DetID",&DetectorID);
 
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-TrackAnalyzer::endJob() 
+CosmicRateAnalyzer::endJob() 
 {
-   file_->Write();
-   file_->Close();
 }
 
 // ------------ method called when starting to processes a run  ------------
-
 void 
-TrackAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
+CosmicRateAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
 {
    lastruntime		= 0.0;
    lastrunnum		= 0.0;
@@ -535,13 +452,10 @@ TrackAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
 // ------------ method called when ending the processing of a run  ------------
 
 void 
-TrackAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
+CosmicRateAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 {
-//   if (lastrunnum !=0 && lastruntime !=0){
-//   std::cout<<"lastruntime : "<<lastruntime<<"       lastrunnum : "<<lastrunnum<<std::endl;
-//   std::cout<<" ################   : "<<ntrk_runnum<<std::endl;
    number_of_tracks	=ntrk_runnum;
-   run_time		= double(lastruntime);
+   run_time		= lastruntime;
    runnum		= lastrunnum;
    number_of_tracks_PIX	= track_PIXEL ; 
    number_of_tracks_FPIX= track_FPIX ; 
@@ -558,33 +472,18 @@ TrackAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
    treeRun  ->Fill();
 }
 
-
-// ------------ method called when starting to processes a luminosity block  ------------
-/*
-void 
-TrackAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
-
-// ------------ method called when ending the processing of a luminosity block  ------------
-/*
-void 
-TrackAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
-
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-TrackAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+CosmicRateAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
+  desc.setComment("Create tuple with all variables required to calculate cosmic event and track rates.");
+  desc.add<edm::InputTag> ("tracksInputTag",edm::InputTag("ALCARECOTkAlCosmicsCTF0T"));
+  desc.add<edm::InputTag> ("muonsInputTag",edm::InputTag("muons1Leg"));
+  descriptions.add("cosmicRateAnalyzer", desc);
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(TrackAnalyzer);
+DEFINE_FWK_MODULE(CosmicRateAnalyzer);
 
